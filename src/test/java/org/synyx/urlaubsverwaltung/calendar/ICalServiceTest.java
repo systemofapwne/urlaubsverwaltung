@@ -65,9 +65,7 @@ class ICalServiceTest {
 
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("X-MICROSOFT-CDO-ALLDAYEVENT:TRUE")
-            .contains("DTSTART;VALUE=DATE:20190326")
-
-            .contains("ORGANIZER:mailto:no-reply@example.org");
+            .contains("DTSTART;VALUE=DATE:20190326");
     }
 
     @Test
@@ -87,9 +85,7 @@ class ICalServiceTest {
 
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("DTSTART:20190426T080000Z")
-            .contains("DTEND:20190426T120000Z")
-
-            .contains("ORGANIZER:mailto:no-reply@example.org");
+            .contains("DTEND:20190426T120000Z");
     }
 
     @Test
@@ -110,9 +106,7 @@ class ICalServiceTest {
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("X-MICROSOFT-CDO-ALLDAYEVENT:TRUE")
             .contains("DTSTART;VALUE=DATE:20190326")
-            .contains("DTEND;VALUE=DATE:20190402")
-
-            .contains("ORGANIZER:mailto:no-reply@example.org");
+            .contains("DTEND;VALUE=DATE:20190402");
     }
 
     @Test
@@ -131,9 +125,7 @@ class ICalServiceTest {
 
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("DTSTART:20190526T120000Z")
-            .contains("DTEND:20190526T160000Z")
-
-            .contains("ORGANIZER:mailto:no-reply@example.org");
+            .contains("DTEND:20190526T160000Z");
     }
 
     @Test
@@ -157,9 +149,7 @@ class ICalServiceTest {
             .contains("UID:497ED5D042F718878138A3E2F8C3C35C")
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("DTSTART:20190526T120000Z")
-            .contains("DTEND:20190526T160000Z")
-            .contains("ORGANIZER:mailto:no-reply@example.org")
-            .contains("ATTENDEE;ROLE=REQ-PARTICIPANT;CN=Marlene Muster:mailto:muster@example.org");
+            .contains("DTEND:20190526T160000Z");
     }
 
     @Test
@@ -186,7 +176,7 @@ class ICalServiceTest {
             .contains("UID:497ED5D042F718878138A3E2F8C3C35C")
             .contains("SEQUENCE:1")
 
-            .contains("ORGANIZER:mailto:no-reply@example.org")
+            .contains("ORGANIZER;CN=Marlene Muster:mailto:muster@example.org")
             .contains("ATTENDEE;ROLE=REQ-PARTICIPANT;CN=Marlene Muster:mailto:muster@example.org");
     }
 
@@ -210,10 +200,7 @@ class ICalServiceTest {
             .contains("SUMMARY:Marlene Muster abwesend")
             .contains("DTSTART:20190526T120000Z")
             .contains("DTEND:20190526T160000Z")
-            .contains("UID:497ED5D042F718878138A3E2F8C3C35C")
-
-            .contains("ORGANIZER:mailto:no-reply@example.org")
-            .contains("ATTENDEE;ROLE=REQ-PARTICIPANT;CN=Marlene Muster:mailto:muster@example.org");
+            .contains("UID:497ED5D042F718878138A3E2F8C3C35C");
     }
 
     private Absence absence(Person person, LocalDate start, LocalDate end, DayLength length) {

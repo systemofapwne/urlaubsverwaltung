@@ -285,7 +285,7 @@ class ApplicationMailService {
      */
     void notifyHolidayReplacementAllow(HolidayReplacementEntity holidayReplacement, Application application) {
 
-        final File calendarFile = generateCalendar(application, AbsenceType.HOLIDAY_REPLACEMENT);
+        final File calendarFile = generateCalendar(application, AbsenceType.HOLIDAY_REPLACEMENT, holidayReplacement.getPerson());
 
         Map<String, Object> model = new HashMap<>();
         model.put(APPLICATION, application);
@@ -312,7 +312,7 @@ class ApplicationMailService {
      */
     void notifyHolidayReplacementAboutCancellation(HolidayReplacementEntity holidayReplacement, Application application) {
 
-        final File calendarFile = generateCalendar(application, DEFAULT, CANCELLED);
+        final File calendarFile = generateCalendar(application, DEFAULT, CANCELLED, holidayReplacement.getPerson());
 
         Map<String, Object> model = new HashMap<>();
         model.put(APPLICATION, application);
@@ -635,11 +635,11 @@ class ApplicationMailService {
     }
 
     private File generateCalendar(Application application, AbsenceType absenceType) {
-        return generateCalendar(application, absenceType, PUBLISHED);
+        return generateCalendar(application, absenceType, null, PUBLISHED);
     }
-    private File generateCalendar(Application application, AbsenceType absenceType, ICalType iCalType) {
+    private File generateCalendar(Application application, AbsenceType absenceType, Person holidayReplacement, ICalType iCalType) {
         final Absence absence = new Absence(application.getPerson(), application.getPeriod(), getAbsenceTimeConfiguration(), absenceType);
-        return iCalService.getSingleAppointment(absence, iCalType);
+        return iCalService.getSingleAppointment(absence, holidayReplacement, iCalType);
     }
 
     private AbsenceTimeConfiguration getAbsenceTimeConfiguration() {

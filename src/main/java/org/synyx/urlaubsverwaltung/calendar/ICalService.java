@@ -7,6 +7,7 @@ import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
+import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.ProdId;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.synyx.urlaubsverwaltung.absence.Absence;
+import org.synyx.urlaubsverwaltung.person.Person;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -36,10 +38,13 @@ import static java.util.Date.from;
 import static net.fortuna.ical4j.model.parameter.Role.REQ_PARTICIPANT;
 import static net.fortuna.ical4j.model.property.CalScale.GREGORIAN;
 import static net.fortuna.ical4j.model.property.Method.CANCEL;
+import static net.fortuna.ical4j.model.property.Method.PUBLISH;
+import static net.fortuna.ical4j.model.property.Method.REQUEST;
 import static net.fortuna.ical4j.model.property.Version.VERSION_2_0;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.synyx.urlaubsverwaltung.calendar.ICalType.CANCELLED;
 import static org.synyx.urlaubsverwaltung.calendar.ICalType.PUBLISHED;
+import static org.synyx.urlaubsverwaltung.calendar.ICalType.REQUESTED;
 
 
 @Service
@@ -62,24 +67,24 @@ public class ICalService {
         return writeCalenderIntoFile(calendar, file);
     }
 
-    public File getSingleAppointment(Absence absence, ICalType method) {
+    public File getSingleAppointment(Absence absence, Person holidayReplacement, ICalType method) {
         final File file = generateCalenderFile("appointment");
-        final Calendar calendar = generateForSingleAppointment(absence, method);
+        final Calendar calendar = generateForSingleAppointment(absence, holidayReplacement, method);
         return writeCalenderIntoFile(calendar, file);
     }
 
     private Calendar generateCalendar(String title, List<Absence> absences) {
-        final Calendar calendar = prepareCalendar(absences, PUBLISHED);
+        final Calendar calendar = prepareCalendar(absences, null, PUBLISHED);
         calendar.getProperties().add(new XProperty("X-WR-CALNAME", title));
         calendar.getProperties().add(new RefreshInterval(new ParameterList(), calendarProperties.getRefreshInterval()));
         return calendar;
     }
 
-    private Calendar generateForSingleAppointment(Absence absence, ICalType method) {
-        return prepareCalendar(List.of(absence), method);
+    private Calendar generateForSingleAppointment(Absence absence, Person holidayReplacements, ICalType method) {
+        return prepareCalendar(List.of(absence), holidayReplacements, method);
     }
 
-    private Calendar prepareCalendar(List<Absence> absences, ICalType method) {
+    private Calendar prepareCalendar(List<Absence> absences, Person holidayReplacement, ICalType method) {
         final Calendar calendar = new Calendar();
         calendar.getProperties().add(VERSION_2_0);
         calendar.getProperties().add(new ProdId("-//Urlaubsverwaltung//iCal4j 1.0//DE"));
@@ -88,10 +93,14 @@ public class ICalService {
 
         if (method == CANCELLED) {
             calendar.getProperties().add(CANCEL);
+        } else if (method == PUBLISHED) {
+            calendar.getProperties().add(PUBLISH);
+        } else if (method == REQUESTED) {
+            calendar.getProperties().add(REQUEST);
         }
 
         absences.stream()
-            .map(absence -> this.toVEvent(absence, method))
+            .map(absence -> this.toVEvent(absence, holidayReplacement, method))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .forEach(event -> calendar.getComponents().add(event));
@@ -99,7 +108,7 @@ public class ICalService {
         return calendar;
     }
 
-    private Optional<VEvent> toVEvent(Absence absence, ICalType method) {
+    private Optional<VEvent> toVEvent(Absence absence, Person holidayReplacement, ICalType method) {
 
         final ZonedDateTime startDateTime = absence.getStartDate();
         final ZonedDateTime endDateTime = absence.getEndDate();
@@ -130,21 +139,32 @@ public class ICalService {
         }
 
         event.getProperties().add(new Uid(generateUid(absence)));
-        event.getProperties().add(generateAttendee(absence));
+
+        if(method == REQUESTED || method == CANCELLED) {
+            event.getProperties().add(generateAttendee(holidayReplacement));
+        }
 
         if (method == CANCELLED) {
             event.getProperties().add(new Sequence(1));
         }
 
-        event.getProperties().add(new Organizer(URI.create("mailto:" + calendarProperties.getOrganizer())));
+        event.getProperties().add(generateOrganizer(absence));
 
         return Optional.of(event);
     }
 
-    private Attendee generateAttendee(Absence absence) {
-        final Attendee attendee = new Attendee(URI.create("mailto:" + absence.getPerson().getEmail()));
+    private Organizer generateOrganizer(Absence absence) {
+        final Organizer organizer = new Organizer(URI.create("mailto:" + absence.getPerson().getEmail()));
+        organizer.getParameters().add(new Cn(absence.getPerson().getNiceName()));
+
+        return organizer;
+    }
+
+    private Attendee generateAttendee(Person person) {
+        final Attendee attendee = new Attendee(URI.create("mailto:" + person.getEmail()));
+        attendee.getParameters().add(Rsvp.TRUE);
         attendee.getParameters().add(REQ_PARTICIPANT);
-        attendee.getParameters().add(new Cn(absence.getPerson().getNiceName()));
+        attendee.getParameters().add(new Cn(person.getNiceName()));
 
         return attendee;
     }
