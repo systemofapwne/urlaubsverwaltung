@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.synyx.urlaubsverwaltung.period.DayLength.FULL;
 import static org.synyx.urlaubsverwaltung.period.DayLength.ZERO;
 import static org.synyx.urlaubsverwaltung.util.DateUtil.isChristmasEve;
@@ -46,7 +45,7 @@ public class PublicHolidaysServiceImpl implements PublicHolidaysService {
 
         return getHolidays(from, to, federalState).stream()
             .map(holiday -> new PublicHoliday(holiday.getDate(), getHolidayDayLength(workingTimeSettings, holiday.getDate(), federalState), holiday.getDescription(locale)))
-            .collect(toUnmodifiableList());
+            .toList();
     }
 
     private DayLength getHolidayDayLength(WorkingTimeSettings workingTimeSettings, LocalDate date, FederalState federalState) {
