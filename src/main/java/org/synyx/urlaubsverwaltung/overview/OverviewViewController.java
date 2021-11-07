@@ -81,7 +81,6 @@ public class OverviewViewController {
 
     @GetMapping
     public String index() {
-
         return "redirect:/web/overview";
     }
 
@@ -125,6 +124,7 @@ public class OverviewViewController {
         model.addAttribute("currentMonth", now.getMonthValue());
         model.addAttribute("signedInUser", signedInUser);
         model.addAttribute("userIsAllowedToWriteOvertime", overtimeService.isUserIsAllowedToWriteOvertime(signedInUser, person));
+        model.addAttribute("departments", departmentService.getAssignedDepartmentsOfMember(person));
 
         return "person/overview";
     }
