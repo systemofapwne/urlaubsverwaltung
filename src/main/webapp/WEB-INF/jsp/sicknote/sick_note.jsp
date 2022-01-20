@@ -144,7 +144,7 @@
                     </jsp:body>
                 </uv:box>
 
-                <table class="list-table striped-table bordered-table tw-text-sm">
+                <table class="list-table striped-table tw-text-sm">
                     <tbody>
                     <tr>
                         <td>
@@ -198,7 +198,7 @@
                     </jsp:body>
                 </uv:section-heading>
 
-                <table class="list-table striped-table bordered-table tw-text-sm">
+                <table class="list-table striped-table tw-text-sm">
                     <tbody>
                     <c:forEach items="${comments}" var="comment" varStatus="loopStatus">
                         <tr>
