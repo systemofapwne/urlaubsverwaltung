@@ -12,6 +12,7 @@ const paths = {
 };
 
 module.exports = {
+  mode: process.env.NODE_ENV,
   devtool: false,
 
   entry: {
@@ -80,9 +81,6 @@ module.exports = {
   },
 
   plugins: [
-    // https://webpack.js.org/guides/caching/#module-identifiers
-    // include HashedModuleIdsPlugin so that file hashes don't change unexpectedly
-    new webpack.HashedModuleIdsPlugin(),
     // This Webpack plugin will generate a JSON file that matches
     // the original filename with the hashed version.
     // This file is read by the taglib AssetsHashResolverTag.java to ease asset handling in templates
@@ -113,36 +111,40 @@ module.exports = {
       maxInitialRequests: Number.POSITIVE_INFINITY,
       minSize: 1024,
       cacheGroups: {
-        vendor: {
+        defaultVendors: {
           test: /[/\\]node_modules[/\\]/,
           name(module) {
             // get the name. E.g. node_modules/packageName/not/this/part.js
             // or node_modules/packageName
-            const packageName = module.context.match(/[/\\]node_modules[/\\](.*?)([/\\]|$)/)[1];
+            let match = module.context.match(/[/\\]node_modules[/\\](.*?)([/\\]|$)/);
+            if (match != null) {
+              console.log(`̀match ${match}`)
+              const packageName = match[1];
 
-            if (/node_modules\/jquery-ui\/ui\/i18n/.test(module.context)) {
-              const locale = module.resource.match(/datepicker-(\w\w)/)[1];
-              // build separate bundles for jquery-ui-datepicker
-              // which can be included on demand in the view templates
-              // or used as dynamic import and handled by webpack
-              return `npm.${packageName}.datepicker.${locale}`;
-            }
-
-            if (packageName === "date-fns") {
-              // build separate bundles for dateFn locales
-              // which can be included on demand in the view templates
-              // or used as dynamic import and handled by webpack
-              const dateFunctionLocaleMatch = module.context.match(
-                /node_modules\/date-fns\/esm\/locale\/((?!en)(?!_)\w\w)/,
-              );
-              if (dateFunctionLocaleMatch) {
-                const locale = dateFunctionLocaleMatch[1];
-                return `npm.${packageName}.${locale}`;
+              if (/node_modules\/jquery-ui\/ui\/i18n/.test(module.context)) {
+                const locale = module.resource.match(/datepicker-(\w\w)/)[1];
+                // build separate bundles for jquery-ui-datepicker
+                // which can be included on demand in the view templates
+                // or used as dynamic import and handled by webpack
+                return `npm.${packageName}.datepicker.${locale}`;
               }
-            }
 
-            // npm package names are URL-safe, but some servers don't like @ symbols
-            return `npm.${packageName.replace("@", "")}`;
+              if (packageName === "date-fns") {
+                // build separate bundles for dateFn locales
+                // which can be included on demand in the view templates
+                // or used as dynamic import and handled by webpack
+                const dateFunctionLocaleMatch = module.context.match(
+                  /node_modules\/date-fns\/esm\/locale\/((?!en)(?!_)\w\w)/,
+                );
+                if (dateFunctionLocaleMatch) {
+                  const locale = dateFunctionLocaleMatch[1];
+                  return `npm.${packageName}.${locale}`;
+                }
+              }
+
+              // npm package names are URL-safe, but some servers don't like @ symbols
+              return `npm.${packageName.replace("@", "")}`;
+            }
           },
         },
       },
